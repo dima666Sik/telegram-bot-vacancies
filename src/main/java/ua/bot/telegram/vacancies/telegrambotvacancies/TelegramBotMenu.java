@@ -5,48 +5,40 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class TelegramBotMenu {
-    public ReplyKeyboard getMenuLevelUserQualification() {
-        List<InlineKeyboardButton> rowBtnQualificationUsers
-                = new ArrayList<>();
-
-        InlineKeyboardButton btnJunior = getBtnKeyboard("Junior", "Show Junior Vacancies");
-        InlineKeyboardButton btnMiddle = getBtnKeyboard("Middle", "Show Middle Vacancies");
-        InlineKeyboardButton btnSenior = getBtnKeyboard("Senior", "Show Senior Vacancies");
-
-        rowBtnQualificationUsers.add(btnJunior);
-        rowBtnQualificationUsers.add(btnMiddle);
-        rowBtnQualificationUsers.add(btnSenior);
+    public ReplyKeyboard createMenuReplyKeyboard(List<InlineKeyboardButton> rowInlineKeyboardButtons) {
 
         InlineKeyboardMarkup keyboardMarkup
                 = new InlineKeyboardMarkup();
-        keyboardMarkup.setKeyboard(List.of(rowBtnQualificationUsers));
+        keyboardMarkup.setKeyboard(List.of(rowInlineKeyboardButtons));
 
         return keyboardMarkup;
+    }
+
+    public ReplyKeyboard getMenuLevelUserQualification() {
+        return createMenuReplyKeyboard(List.of(getBtnKeyboard("Junior", "Show Junior Vacancies"),
+                getBtnKeyboard("Middle", "Show Middle Vacancies"),
+                getBtnKeyboard("Senior", "Show Senior Vacancies")));
     }
 
     public ReplyKeyboard getJuniorVacanciesMenu() {
-        List<InlineKeyboardButton> rowBtnJuniorVacancies
-                = new ArrayList<>();
-
-        InlineKeyboardButton btnJuniorMA
-                = getBtnKeyboard("Junior Java developer at MA", "vacId=1");
-        InlineKeyboardButton btnJuniorGoogle
-                = getBtnKeyboard("Junior Java developer at Google", "vacId=2");
-
-        rowBtnJuniorVacancies.add(btnJuniorMA);
-        rowBtnJuniorVacancies.add(btnJuniorGoogle);
-
-        InlineKeyboardMarkup keyboardMarkup
-                = new InlineKeyboardMarkup();
-        keyboardMarkup.setKeyboard(List.of(rowBtnJuniorVacancies));
-
-        return keyboardMarkup;
+        return createMenuReplyKeyboard(List.of(getBtnKeyboard("Junior Java developer at MA", "vacId=1"),
+                getBtnKeyboard("Junior Java developer at Google", "vacId=2")));
     }
+
+    public ReplyKeyboard getMiddleVacanciesMenu() {
+        return createMenuReplyKeyboard(List.of(getBtnKeyboard("Middle Java developer at MA", "vacId=3"),
+                getBtnKeyboard("Middle Java developer at Google", "vacId=4")));
+    }
+
+    public ReplyKeyboard getSeniorVacanciesMenu() {
+        return createMenuReplyKeyboard(List.of(getBtnKeyboard("Senior Java developer at MA", "vacId=5"),
+                getBtnKeyboard("Senior Java developer at Google", "vacId=6")));
+    }
+
     public InlineKeyboardButton getBtnKeyboard(String textBtn, String callbackData) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
         inlineKeyboardButton.setText(textBtn);

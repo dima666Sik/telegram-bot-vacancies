@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -24,6 +23,7 @@ public class VacanciesBot extends TelegramLongPollingBot {
     private String username;
 
     private final TelegramBotMenu telegramBotMenu;
+
     @Override
     public void onUpdateReceived(Update update) {
 
@@ -39,6 +39,10 @@ public class VacanciesBot extends TelegramLongPollingBot {
         String callBackData = update.getCallbackQuery().getData();
         if (callBackData.equals("Show Junior Vacancies")) {
             showJuniorVacanciesUpdate(update);
+        } else if (callBackData.equals("Show Middle Vacancies")) {
+            showMiddleVacanciesUpdate(update);
+        } else if (callBackData.equals("Show Senior Vacancies")) {
+            showSeniorVacanciesUpdate(update);
         } else if (callBackData.startsWith("vacId=")) {
             String id = callBackData.substring(callBackData.length() - 1);
             showVacancyDescription(id, update);
@@ -55,6 +59,18 @@ public class VacanciesBot extends TelegramLongPollingBot {
         sendMessage(update.getCallbackQuery().getMessage().getChatId(),
                 "Please choose vacancy:",
                 Optional.of(telegramBotMenu.getJuniorVacanciesMenu()));
+    }
+
+    private void showMiddleVacanciesUpdate(Update update) {
+        sendMessage(update.getCallbackQuery().getMessage().getChatId(),
+                "Please choose vacancy:",
+                Optional.of(telegramBotMenu.getMiddleVacanciesMenu()));
+    }
+
+    private void showSeniorVacanciesUpdate(Update update) {
+        sendMessage(update.getCallbackQuery().getMessage().getChatId(),
+                "Please choose vacancy:",
+                Optional.of(telegramBotMenu.getSeniorVacanciesMenu()));
     }
 
     private void handleMessageReceived(Update update) {
