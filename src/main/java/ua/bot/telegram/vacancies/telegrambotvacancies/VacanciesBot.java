@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static ua.bot.telegram.vacancies.telegrambotvacancies.enums.TelegramBotCommand.*;
 @Component
 @Log4j2
 @RequiredArgsConstructor
@@ -30,12 +31,12 @@ public class VacanciesBot extends TelegramLongPollingBot {
     private final VacancyService vacancyService;
 
     // key: chat id, value: lvl
-    private Map<Long, String> mapLastShowLvl = new HashMap<>();
+    private final Map<Long, String> mapLastShowLvl = new HashMap<>();
 
     @Override
     public void onUpdateReceived(Update update) {
 
-        if (update.hasMessage()) {
+        if (update.hasMessage() && update.getMessage().getText().equals(START.getCommand())) {
             handleMessageReceived(update);
         }
         if (update.hasCallbackQuery()) {
