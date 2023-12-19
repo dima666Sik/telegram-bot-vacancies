@@ -10,7 +10,11 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ua.bot.telegram.vacancies.telegrambotvacancies.exceptions.SendMessageWasNotExecuted;
+import ua.bot.telegram.vacancies.telegrambotvacancies.exceptions.UnsupportedLvlVacancies;
+import ua.bot.telegram.vacancies.telegrambotvacancies.service.VacancyService;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -23,6 +27,10 @@ public class VacanciesBot extends TelegramLongPollingBot {
     private String username;
 
     private final TelegramBotMenu telegramBotMenu;
+    private final VacancyService vacancyService;
+
+    // key: chat id, value: lvl
+    private Map<Long, String> mapLastShowLvl = new HashMap<>();
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -43,34 +51,72 @@ public class VacanciesBot extends TelegramLongPollingBot {
             showMiddleVacanciesUpdate(update);
         } else if (callBackData.equals("Show Senior Vacancies")) {
             showSeniorVacanciesUpdate(update);
+        } else if (callBackData.equals("Back to vacancies")) {
+            handleBackToVacancies(update);
+        } else if (callBackData.equals("Back to start menu")) {
+            handleBackToStartMenu(update);
         } else if (callBackData.startsWith("vacId=")) {
-            String id = callBackData.substring(callBackData.length() - 1);
+            Long id = Long.parseLong(callBackData.split("=")[1]);
             showVacancyDescription(id, update);
         }
     }
 
-    private void showVacancyDescription(String id, Update update) {
+    private void handleBackToStartMenu(Update update) {
         sendMessage(update.getCallbackQuery().getMessage().getChatId(),
-                "Vacancy description with id = " + id,
-                Optional.empty());
+                "Please choose your level:",
+                Optional.of(telegramBotMenu.getMenuLevelUserQualification()));
+    }
+
+    private void handleBackToVacancies(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        String lvl = mapLastShowLvl.get(chatId);
+
+        switch (lvl) {
+            case "junior" -> showJuniorVacanciesUpdate(update);
+            case "middle" -> showMiddleVacanciesUpdate(update);
+            case "senior" -> showSeniorVacanciesUpdate(update);
+            default -> throw new UnsupportedLvlVacancies("You choose unsupported lvl vacancies!");
+        }
+    }
+
+    private void showVacancyDescription(Long id, Update update) {
+        String shortDescription = vacancyService.getVacancyById(id).getShortDescription();
+        String longDescription = vacancyService.getVacancyById(id).getLongDescription();
+        String company = vacancyService.getVacancyById(id).getCompany();
+        String salary = vacancyService.getVacancyById(id).getSalary();
+        String link = vacancyService.getVacancyById(id).getLink();
+
+        sendMessage(update.getCallbackQuery().getMessage().getChatId(),
+                "Short description: " + shortDescription + "\n\n" +
+                        "Long description: " + longDescription + "\n\n" +
+                        "Company: " + company + "\n\n" +
+                        "Salary: " + salary + "\n\n" +
+                        "Link: " + link + "\n\n",
+                Optional.of(telegramBotMenu.getBackToVacanciesMenu()));
     }
 
     private void showJuniorVacanciesUpdate(Update update) {
-        sendMessage(update.getCallbackQuery().getMessage().getChatId(),
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        sendMessage(chatId,
                 "Please choose vacancy:",
                 Optional.of(telegramBotMenu.getJuniorVacanciesMenu()));
+        mapLastShowLvl.put(chatId, "junior");
     }
 
     private void showMiddleVacanciesUpdate(Update update) {
-        sendMessage(update.getCallbackQuery().getMessage().getChatId(),
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        sendMessage(chatId,
                 "Please choose vacancy:",
                 Optional.of(telegramBotMenu.getMiddleVacanciesMenu()));
+        mapLastShowLvl.put(chatId, "middle");
     }
 
     private void showSeniorVacanciesUpdate(Update update) {
-        sendMessage(update.getCallbackQuery().getMessage().getChatId(),
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        sendMessage(chatId,
                 "Please choose vacancy:",
                 Optional.of(telegramBotMenu.getSeniorVacanciesMenu()));
+        mapLastShowLvl.put(chatId, "senior");
     }
 
     private void handleMessageReceived(Update update) {

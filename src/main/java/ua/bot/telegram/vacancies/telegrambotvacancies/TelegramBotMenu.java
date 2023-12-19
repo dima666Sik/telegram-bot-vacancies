@@ -1,15 +1,21 @@
 package ua.bot.telegram.vacancies.telegrambotvacancies;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ua.bot.telegram.vacancies.telegrambotvacancies.service.VacancyService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class TelegramBotMenu {
-    public ReplyKeyboard createMenuReplyKeyboard(List<InlineKeyboardButton> rowInlineKeyboardButtons) {
+    private final VacancyService vacancyService;
+
+    private ReplyKeyboard createMenuReplyKeyboard(List<InlineKeyboardButton> rowInlineKeyboardButtons) {
 
         InlineKeyboardMarkup keyboardMarkup
                 = new InlineKeyboardMarkup();
@@ -25,24 +31,32 @@ public class TelegramBotMenu {
     }
 
     public ReplyKeyboard getJuniorVacanciesMenu() {
-        return createMenuReplyKeyboard(List.of(getBtnKeyboard("Junior Java developer at MA", "vacId=1"),
-                getBtnKeyboard("Junior Java developer at Google", "vacId=2")));
+        List<InlineKeyboardButton> rowInlineKeyboardButtons = new ArrayList<>();
+        vacancyService.getVacanciesByLvl("junior").forEach(v -> rowInlineKeyboardButtons.add(getBtnKeyboard(v.getTitle(), "vacId=" + v.getId())));
+        return createMenuReplyKeyboard(rowInlineKeyboardButtons);
     }
 
     public ReplyKeyboard getMiddleVacanciesMenu() {
-        return createMenuReplyKeyboard(List.of(getBtnKeyboard("Middle Java developer at MA", "vacId=3"),
-                getBtnKeyboard("Middle Java developer at Google", "vacId=4")));
+        List<InlineKeyboardButton> rowInlineKeyboardButtons = new ArrayList<>();
+        vacancyService.getVacanciesByLvl("middle").forEach(v -> rowInlineKeyboardButtons.add(getBtnKeyboard(v.getTitle(), "vacId=" + v.getId())));
+        return createMenuReplyKeyboard(rowInlineKeyboardButtons);
     }
 
     public ReplyKeyboard getSeniorVacanciesMenu() {
-        return createMenuReplyKeyboard(List.of(getBtnKeyboard("Senior Java developer at MA", "vacId=5"),
-                getBtnKeyboard("Senior Java developer at Google", "vacId=6")));
+        List<InlineKeyboardButton> rowInlineKeyboardButtons = new ArrayList<>();
+        vacancyService.getVacanciesByLvl("senior").forEach(v -> rowInlineKeyboardButtons.add(getBtnKeyboard(v.getTitle(), "vacId=" + v.getId())));
+        return createMenuReplyKeyboard(rowInlineKeyboardButtons);
     }
 
-    public InlineKeyboardButton getBtnKeyboard(String textBtn, String callbackData) {
+    private InlineKeyboardButton getBtnKeyboard(String textBtn, String callbackData) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
         inlineKeyboardButton.setText(textBtn);
         inlineKeyboardButton.setCallbackData(callbackData);
         return inlineKeyboardButton;
+    }
+
+    public ReplyKeyboard getBackToVacanciesMenu() {
+        return createMenuReplyKeyboard(List.of(getBtnKeyboard("Back to vacancies", "Back to vacancies"),
+                getBtnKeyboard("Back to start menu", "Back to start menu")));
     }
 }
