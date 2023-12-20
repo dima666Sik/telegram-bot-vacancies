@@ -1,4 +1,4 @@
-package ua.bot.telegram.vacancies.telegrambotvacancies.enums;
+package ua.bot.telegram.vacancies.telegrambotvacancies.bot.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

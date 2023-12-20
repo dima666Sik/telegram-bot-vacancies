@@ -1,4 +1,4 @@
-package ua.bot.telegram.vacancies.telegrambotvacancies;
+package ua.bot.telegram.vacancies.telegrambotvacancies.bot;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

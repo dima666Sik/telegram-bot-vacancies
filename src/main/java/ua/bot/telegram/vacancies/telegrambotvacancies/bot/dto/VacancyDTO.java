@@ -1,4 +1,4 @@
-package ua.bot.telegram.vacancies.telegrambotvacancies.dto;
+package ua.bot.telegram.vacancies.telegrambotvacancies.bot.dto;
 
 import com.opencsv.bean.CsvBindByName;
 import lombok.*;

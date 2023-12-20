@@ -1,4 +1,4 @@
-package ua.bot.telegram.vacancies.telegrambotvacancies;
+package ua.bot.telegram.vacancies.telegrambotvacancies.bot;
 
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -8,8 +8,8 @@ import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ua.bot.telegram.vacancies.telegrambotvacancies.enums.TelegramBotCommand.HELP;
-import static ua.bot.telegram.vacancies.telegrambotvacancies.enums.TelegramBotCommand.START;
+import static ua.bot.telegram.vacancies.telegrambotvacancies.bot.enums.TelegramBotCommand.HELP;
+import static ua.bot.telegram.vacancies.telegrambotvacancies.bot.enums.TelegramBotCommand.START;
 
 @Component
 @Getter

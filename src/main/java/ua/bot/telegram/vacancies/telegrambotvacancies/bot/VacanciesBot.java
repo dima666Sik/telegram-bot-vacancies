@@ -1,28 +1,30 @@
-package ua.bot.telegram.vacancies.telegrambotvacancies;
+package ua.bot.telegram.vacancies.telegrambotvacancies.bot;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ua.bot.telegram.vacancies.telegrambotvacancies.exceptions.SendMessageWasNotExecuted;
-import ua.bot.telegram.vacancies.telegrambotvacancies.exceptions.SetCommandWasNotExecuted;
-import ua.bot.telegram.vacancies.telegrambotvacancies.exceptions.UnsupportedLvlVacancies;
-import ua.bot.telegram.vacancies.telegrambotvacancies.service.VacancyService;
-import ua.bot.telegram.vacancies.telegrambotvacancies.utils.UtilsCommand;
+import ua.bot.telegram.vacancies.telegrambotvacancies.gpt.service.ChatGptAPIService;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.config.TelegramBotConfig;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.exceptions.SendMessageWasNotExecuted;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.exceptions.SetCommandWasNotExecuted;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.exceptions.UnsupportedLvlVacancies;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.service.VacancyService;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.util.BotCommand;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static ua.bot.telegram.vacancies.telegrambotvacancies.enums.TelegramBotCommand.*;
+import static ua.bot.telegram.vacancies.telegrambotvacancies.bot.enums.TelegramBotCommand.*;
 
 @Component
 @Log4j2
@@ -32,9 +34,12 @@ public class VacanciesBot extends TelegramLongPollingBot {
     private final VacancyService vacancyService;
     private final TelegramBotMenuCommand telegramBotMenuCommand;
     private final TelegramBotConfig telegramBotConfig;
+    private final ChatGptAPIService chatGptAPIService;
+    private SendMessage sendMessage;
 
     // key: chat id, value: lvl
     private final Map<Long, String> mapLastShowLvl = new HashMap<>();
+    private final Map<Long, String> mapLastShowVacancy = new HashMap<>();
 
     @PostConstruct
     public void init() {
@@ -45,7 +50,7 @@ public class VacanciesBot extends TelegramLongPollingBot {
             log.info("successful execute set commands!");
         } catch (TelegramApiException e) {
             log.error("execute set commands was wrong!");
-            throw new SetCommandWasNotExecuted("Execute set commands was wrong!",e);
+            throw new SetCommandWasNotExecuted("Execute set commands was wrong!", e);
         }
     }
 
@@ -55,7 +60,7 @@ public class VacanciesBot extends TelegramLongPollingBot {
         if (update.hasMessage()) {
             if (update.getMessage().getText().equals(START.getCommand())) {
                 handleMessageReceived(update);
-            } else if (update.getMessage().getText().equals(HELP.getCommand())){
+            } else if (update.getMessage().getText().equals(HELP.getCommand())) {
                 handleCallHelp(update);
             }
         }
@@ -65,9 +70,9 @@ public class VacanciesBot extends TelegramLongPollingBot {
     }
 
     private void handleCallHelp(Update update) {
-        sendMessage(update.getMessage().getChatId(),
-                UtilsCommand.HELP_TEXT,
-                Optional.empty());
+        basicSettingSendMessage(update.getMessage().getChatId(),
+                BotCommand.HELP_TEXT);
+        sendMessage(Optional.empty());
     }
 
     private void handleCallQuery(Update update) {
@@ -82,16 +87,29 @@ public class VacanciesBot extends TelegramLongPollingBot {
             handleBackToVacancies(update);
         } else if (callBackData.equals("Back to start menu")) {
             handleBackToStartMenu(update);
+        } else if (callBackData.equals("Generate With ChatGPT cover letter")) {
+            handleGenerateWithGptCoverLetter(update);
         } else if (callBackData.startsWith("vacId=")) {
             Long id = Long.parseLong(callBackData.split("=")[1]);
             showVacancyDescription(id, update);
         }
     }
 
+    private void handleGenerateWithGptCoverLetter(Update update) {
+        if (!mapLastShowVacancy.isEmpty()) {
+            Long chatId = update.getCallbackQuery().getMessage().getChatId();
+            String resultGenerateGpt = chatGptAPIService.putRequestChatGPT(mapLastShowVacancy.get(chatId));
+            basicSettingSendMessage(chatId,
+                    resultGenerateGpt);
+            sendMessage(
+                    Optional.of(telegramBotMenu.getBackToVacanciesMenu()));
+        }
+    }
+
     private void handleBackToStartMenu(Update update) {
-        sendMessage(update.getCallbackQuery().getMessage().getChatId(),
-                "Please choose your level:",
-                Optional.of(telegramBotMenu.getMenuLevelUserQualification()));
+        basicSettingSendMessage(update.getCallbackQuery().getMessage().getChatId(),
+                "Please choose your level:");
+        sendMessage(Optional.of(telegramBotMenu.getMenuLevelUserQualification()));
     }
 
     private void handleBackToVacancies(Update update) {
@@ -107,55 +125,97 @@ public class VacanciesBot extends TelegramLongPollingBot {
     }
 
     private void showVacancyDescription(Long id, Update update) {
+        String title = vacancyService.getVacancyById(id).getTitle();
         String shortDescription = vacancyService.getVacancyById(id).getShortDescription();
         String longDescription = vacancyService.getVacancyById(id).getLongDescription();
         String company = vacancyService.getVacancyById(id).getCompany();
         String salary = vacancyService.getVacancyById(id).getSalary();
         String link = vacancyService.getVacancyById(id).getLink();
 
-        sendMessage(update.getCallbackQuery().getMessage().getChatId(),
-                "Short description: " + shortDescription + "\n\n" +
-                        "Long description: " + longDescription + "\n\n" +
-                        "Company: " + company + "\n\n" +
-                        "Salary: " + salary + "\n\n" +
-                        "Link: " + link + "\n\n",
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+
+        String vacancyText = """
+                *Title:* %s \n\n
+                *Short description:* %s \n\n
+                *Long description:* %s \n\n
+                *Company:* %s \n\n
+                *Salary:* %s \n\n
+                *Link:* [%s](%s)
+                """.formatted(
+                escapeReservedMarkdownCharacters(title),
+                escapeReservedMarkdownCharacters(shortDescription),
+                escapeReservedMarkdownCharacters(longDescription),
+                escapeReservedMarkdownCharacters(company),
+                salary.isBlank() || salary.equals("-") ? "Salary not specified" : escapeReservedMarkdownCharacters(salary),
+                escapeReservedMarkdownCharacters("Click in order to get more details!"),
+                escapeReservedMarkdownCharacters(link));
+
+        basicSettingSendMessage(chatId,
+                vacancyText);
+        sendMessage.setParseMode(ParseMode.MARKDOWNV2);
+        sendMessage(
                 Optional.of(telegramBotMenu.getBackToVacanciesMenu()));
+
+        mapLastShowVacancy.put(chatId, vacancyText);
+    }
+
+    private String escapeReservedMarkdownCharacters(String str) {
+        return str.replace("*", "\\*")
+                .replace("_", "\\_")
+                .replace("-", "\\-")
+                .replace("[", "\\[")
+                .replace("]", "\\]")
+                .replace("(", "\\(")
+                .replace(")", "\\)")
+                .replace("~", "\\~")
+                .replace("`", "\\`")
+                .replace(">", "\\>")
+                .replace("#", "\\#")
+                .replace("+", "\\+")
+                .replace(".", "\\.")
+                .replace("!", "\\!");
+
     }
 
     private void showJuniorVacanciesUpdate(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        sendMessage(chatId,
-                "Please choose vacancy:",
-                Optional.of(telegramBotMenu.getJuniorVacanciesMenu()));
+        basicSettingSendMessage(chatId,
+                "Please choose vacancy:");
+        sendMessage(Optional.of(telegramBotMenu.getJuniorVacanciesMenu()));
         mapLastShowLvl.put(chatId, "junior");
     }
 
     private void showMiddleVacanciesUpdate(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        sendMessage(chatId,
-                "Please choose vacancy:",
-                Optional.of(telegramBotMenu.getMiddleVacanciesMenu()));
+        basicSettingSendMessage(chatId,
+                "Please choose vacancy:");
+        sendMessage(Optional.of(telegramBotMenu.getMiddleVacanciesMenu()));
         mapLastShowLvl.put(chatId, "middle");
     }
 
     private void showSeniorVacanciesUpdate(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        sendMessage(chatId,
-                "Please choose vacancy:",
+        basicSettingSendMessage(chatId,
+                "Please choose vacancy:");
+        sendMessage(
                 Optional.of(telegramBotMenu.getSeniorVacanciesMenu()));
         mapLastShowLvl.put(chatId, "senior");
     }
 
     private void handleMessageReceived(Update update) {
-        sendMessage(update.getMessage().getChatId(),
-                "Welcome to the " + telegramBotConfig.getUsername() + "! Please choose your level:",
+        basicSettingSendMessage(update.getMessage().getChatId(),
+                "Welcome to the " + telegramBotConfig.getUsername() + "! Please choose your level:");
+        sendMessage(
                 Optional.of(telegramBotMenu.getMenuLevelUserQualification()));
     }
 
-    private void sendMessage(Long id, String textMessage, Optional<ReplyKeyboard> replyKeyboard) {
-        SendMessage sendMessage = new SendMessage();
+    private void basicSettingSendMessage(Long id, String textMessage) {
+        sendMessage = new SendMessage();
         sendMessage.setChatId(id);
         sendMessage.setText(textMessage);
+    }
+
+    private void sendMessage(Optional<ReplyKeyboard> replyKeyboard) {
 
         replyKeyboard.ifPresent(sendMessage::setReplyMarkup);
 
@@ -165,7 +225,7 @@ public class VacanciesBot extends TelegramLongPollingBot {
             log.info("successful execute send message!");
         } catch (TelegramApiException e) {
             log.error("execute send message was wrong!");
-            throw new SendMessageWasNotExecuted("Execute send message was wrong!",e);
+            throw new SendMessageWasNotExecuted("Execute send message was wrong!", e);
         }
     }
 

@@ -1,11 +1,11 @@
-package ua.bot.telegram.vacancies.telegrambotvacancies;
+package ua.bot.telegram.vacancies.telegrambotvacancies.bot;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import ua.bot.telegram.vacancies.telegrambotvacancies.service.VacancyService;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.service.VacancyService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +57,7 @@ public class TelegramBotMenu {
 
     public ReplyKeyboard getBackToVacanciesMenu() {
         return createMenuReplyKeyboard(List.of(getBtnKeyboard("Back to vacancies", "Back to vacancies"),
+                getBtnKeyboard("Generate With ChatGPT cover letter", "Generate With ChatGPT cover letter"),
                 getBtnKeyboard("Back to start menu", "Back to start menu")));
     }
 }

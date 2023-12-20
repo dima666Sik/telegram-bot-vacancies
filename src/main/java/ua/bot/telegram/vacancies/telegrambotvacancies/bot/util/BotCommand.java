@@ -1,7 +1,7 @@
-package ua.bot.telegram.vacancies.telegrambotvacancies.utils;
+package ua.bot.telegram.vacancies.telegrambotvacancies.bot.util;
 
-public class UtilsCommand {
-    private UtilsCommand(){}
+public class BotCommand {
+    private BotCommand(){}
     public static final String HELP_TEXT = """
             Welcome to the Telegram Bot Help Menu! 🤖
 

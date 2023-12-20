@@ -1,4 +1,4 @@
-package ua.bot.telegram.vacancies.telegrambotvacancies;
+package ua.bot.telegram.vacancies.telegrambotvacancies.bot.config;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;

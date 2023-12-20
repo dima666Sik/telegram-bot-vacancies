@@ -1,4 +1,4 @@
-package ua.bot.telegram.vacancies.telegrambotvacancies.service.impl;
+package ua.bot.telegram.vacancies.telegrambotvacancies.bot.service.impl;
 
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
@@ -6,9 +6,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import ua.bot.telegram.vacancies.telegrambotvacancies.dto.VacancyDTO;
-import ua.bot.telegram.vacancies.telegrambotvacancies.exceptions.FileWasNotRead;
-import ua.bot.telegram.vacancies.telegrambotvacancies.service.VacancyFileReaderService;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.dto.VacancyDTO;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.exceptions.FileWasNotRead;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.service.VacancyFileReaderService;
 
 import java.io.IOException;
 import java.io.InputStreamReader;

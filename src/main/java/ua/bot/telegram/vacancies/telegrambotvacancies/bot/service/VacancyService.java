@@ -1,6 +1,6 @@
-package ua.bot.telegram.vacancies.telegrambotvacancies.service;
+package ua.bot.telegram.vacancies.telegrambotvacancies.bot.service;
 
-import ua.bot.telegram.vacancies.telegrambotvacancies.dto.VacancyDTO;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.dto.VacancyDTO;
 
 import java.util.List;
 

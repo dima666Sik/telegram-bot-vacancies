@@ -1,12 +1,12 @@
-package ua.bot.telegram.vacancies.telegrambotvacancies.service.impl;
+package ua.bot.telegram.vacancies.telegrambotvacancies.bot.service.impl;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import ua.bot.telegram.vacancies.telegrambotvacancies.dto.VacancyDTO;
-import ua.bot.telegram.vacancies.telegrambotvacancies.service.VacancyFileReaderService;
-import ua.bot.telegram.vacancies.telegrambotvacancies.service.VacancyService;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.dto.VacancyDTO;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.service.VacancyFileReaderService;
+import ua.bot.telegram.vacancies.telegrambotvacancies.bot.service.VacancyService;
 
 import java.util.HashMap;
 import java.util.List;

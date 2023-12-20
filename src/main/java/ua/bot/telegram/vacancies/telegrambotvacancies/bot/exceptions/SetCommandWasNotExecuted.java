@@ -1,4 +1,4 @@
-package ua.bot.telegram.vacancies.telegrambotvacancies.exceptions;
+package ua.bot.telegram.vacancies.telegrambotvacancies.bot.exceptions;
 
 public class SetCommandWasNotExecuted extends RuntimeException{
     public SetCommandWasNotExecuted() {
