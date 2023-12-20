@@ -1,47 +1,73 @@
 package ua.bot.telegram.vacancies.telegrambotvacancies;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ua.bot.telegram.vacancies.telegrambotvacancies.exceptions.SendMessageWasNotExecuted;
+import ua.bot.telegram.vacancies.telegrambotvacancies.exceptions.SetCommandWasNotExecuted;
 import ua.bot.telegram.vacancies.telegrambotvacancies.exceptions.UnsupportedLvlVacancies;
 import ua.bot.telegram.vacancies.telegrambotvacancies.service.VacancyService;
+import ua.bot.telegram.vacancies.telegrambotvacancies.utils.UtilsCommand;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import static ua.bot.telegram.vacancies.telegrambotvacancies.enums.TelegramBotCommand.*;
+
 @Component
 @Log4j2
 @RequiredArgsConstructor
 public class VacanciesBot extends TelegramLongPollingBot {
-    @Value("${telegram.bot.token.access}")
-    private String tokenAccess;
-    @Value("${telegram.bot.username}")
-    private String username;
-
     private final TelegramBotMenu telegramBotMenu;
     private final VacancyService vacancyService;
+    private final TelegramBotMenuCommand telegramBotMenuCommand;
+    private final TelegramBotConfig telegramBotConfig;
 
     // key: chat id, value: lvl
     private final Map<Long, String> mapLastShowLvl = new HashMap<>();
 
+    @PostConstruct
+    public void init() {
+        try {
+            log.info("start execute set commands!");
+            this.execute(new SetMyCommands(telegramBotMenuCommand.getBotCommandList(),
+                    new BotCommandScopeDefault(), null));
+            log.info("successful execute set commands!");
+        } catch (TelegramApiException e) {
+            log.error("execute set commands was wrong!");
+            throw new SetCommandWasNotExecuted("Execute set commands was wrong!",e);
+        }
+    }
+
     @Override
     public void onUpdateReceived(Update update) {
 
-        if (update.hasMessage() && update.getMessage().getText().equals(START.getCommand())) {
-            handleMessageReceived(update);
+        if (update.hasMessage()) {
+            if (update.getMessage().getText().equals(START.getCommand())) {
+                handleMessageReceived(update);
+            } else if (update.getMessage().getText().equals(HELP.getCommand())){
+                handleCallHelp(update);
+            }
         }
         if (update.hasCallbackQuery()) {
             handleCallQuery(update);
         }
+    }
+
+    private void handleCallHelp(Update update) {
+        sendMessage(update.getMessage().getChatId(),
+                UtilsCommand.HELP_TEXT,
+                Optional.empty());
     }
 
     private void handleCallQuery(Update update) {
@@ -122,7 +148,7 @@ public class VacanciesBot extends TelegramLongPollingBot {
 
     private void handleMessageReceived(Update update) {
         sendMessage(update.getMessage().getChatId(),
-                "Welcome to the " + username + "! Please choose your level:",
+                "Welcome to the " + telegramBotConfig.getUsername() + "! Please choose your level:",
                 Optional.of(telegramBotMenu.getMenuLevelUserQualification()));
     }
 
@@ -139,18 +165,17 @@ public class VacanciesBot extends TelegramLongPollingBot {
             log.info("successful execute send message!");
         } catch (TelegramApiException e) {
             log.error("execute send message was wrong!");
-            throw new SendMessageWasNotExecuted(e);
+            throw new SendMessageWasNotExecuted("Execute send message was wrong!",e);
         }
     }
 
-
     @Override
     public String getBotUsername() {
-        return username;
+        return telegramBotConfig.getUsername();
     }
 
     @Override
     public String getBotToken() {
-        return tokenAccess;
+        return telegramBotConfig.getTokenAccess();
     }
 }

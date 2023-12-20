@@ -7,7 +7,9 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum TelegramBotCommand {
 
-    START("/start");
+    START("/start","Start main work application."),
+    HELP("/help","It is help command, can show u some various resolves often issues.");
 
     private final String command;
+    private final String description;
 }
