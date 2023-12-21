@@ -23,7 +23,7 @@ public class OpenAiConfig {
     private int freqPenalty;
     @Value("${openai.presence-penalty}")
     private int presPenalty;
-    @Value("${openai.token.access}")
+    @Value("${openai.key}")
     private String apiToken;
 
     @Bean

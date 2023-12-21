@@ -65,15 +65,15 @@ git clone https://github.com/dima666Sik/telegram-bot-vacancies.git
 2. To run this project, you will need to install:
     - JDK 21 or higher;
 3. Please reload this Maven project to install all dependencies.
-4. Also, you will need to insert your own tokens for `telegram.bot.token.access` 
-and `openai.token.access` into file **application.properties**.
+4. Also, you will need to insert your own token and key into `telegram.bot.token.access`
+   and `openai.key` into file **application.properties**.
 ```properties
 telegram.bot.token.access=<your-own-telegram-bot-token-access>
 telegram.bot.username=BotVacancies
 file.name.vacancies=vacancies.csv
 
 openai.api.url=https://api.openai.com/v1/chat/completions
-openai.token.access=<your-own-openai-token-access>
+openai.key=<your-own-openai-token-access>
 openai.model=gpt-3.5-turbo
 openai.temperature=1
 openai.max-tokens=256
