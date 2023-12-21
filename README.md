@@ -82,7 +82,21 @@ openai.frequency-penalty=0
 openai.presence-penalty=0
 ```
 5. Make sure that you have a file in your code `vacancies.csv` from where vacancies will be read.
-6. Feel free to make changes to code that you clone to yourself Git.
+6. If you can see, we have in root project `Dockerfile`. We can start our project on docker without starting on IDE.
+U can see a script into `Dockerfile`.
+```dockerfile
+FROM openjdk:21-jdk
+
+#optional
+LABEL authors="<author>"  
+
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} tg-bot-vacancies.jar
+EXPOSE 3030
+
+ENTRYPOINT ["java", "-jar", "/tg-bot-vacancies.jar"]
+```
+7. Feel free to make changes to code that you clone to yourself Git.
 
 ## Author Info @DK
 
