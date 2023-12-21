@@ -1,5 +1,12 @@
-# Telegram bot vacancies
+# Telegram bot vacancies 🤖💬🎉
 
+![Project Video](src/main/resources/github/gif/tg-bot-vacancies.gif)
+
+
+> This application named by **telegram-bot-vacancies** and integrates with Telegram bot functionalities into the project.
+> Also integrate the OpenAI API to generate personalized cover letters for the last chosen vacancy by the user.
+> The opencsv library is employed to efficiently read files containing vacancy information.
+> This bot functionality will be expanded.
 ---
 
 ## List of Contents
